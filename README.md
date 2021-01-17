@@ -1,37 +1,39 @@
 # XD01-2021TI
 
-#### 介绍
+## 介绍
 2021年TI杯西电01组代码仓库
+### 仓库内容
+- stm32项目代码管理
+- msp430代码管理
+- 硬件仿真文件存储
+- 待续
 
-#### 软件架构
-软件架构说明
+### 成员
+- 丁巍
+- 韩子豪
+- 尹文贝
 
+---
+## 使用说明
+- 请务必使用git命令来更新代码
+- 每个项目中写明README文档
+- 若有时间，请补充每个模块的作用
 
-#### 安装教程
+### git命令简介
+（稍后补充）
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+---
 
-#### 使用说明
+### .gitignore 文件作用说明
+在该文件中填写不需要提交到远程仓库的文件名，即可忽略这些不需要同步的文件。
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+当前仓库中该文件中内容为gitee模板自动生成的C语言需要忽略的文件。
 
-#### 参与贡献
+>**忽略文件的原则是：**
+>
+>1. 忽略操作系统自动生成的文件，比如缩略图等；
+>2. 忽略编译生成的中间文件、可执行文件等，也就是如果一个文件是通过另一个文件自动生成的，那自动生成的文件就没必要放进版本库，比如Keil编译产生的编译文件；
+>3. 忽略你自己的带有敏感信息的配置文件，比如存放密码的配置文件。
+>
+>[具体.gitignore 书写规则查看](https://www.liaoxuefeng.com/wiki/896043488029600/900004590234208)
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
