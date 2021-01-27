@@ -55,7 +55,7 @@
 	uint8_t RxDMABuff8[UART_RX_BUF_SIZE] = {0};
 #endif
 
-uint8_t rxLenth = 0;	//接收信息的长度
+uint32_t rxLenth = 0;	//接收信息的长度
 
 /* Private function prototypes -----------------------------------------------*/
 
@@ -70,6 +70,8 @@ void UartSendString(UART_HandleTypeDef *uart, uint8_t string[]){
 	uint16_t lenth = 0;
 	lenth = strlen(string);
 	HAL_UART_Transmit(uart, string, lenth, 1000);
+
+	while(__HAL_UART_GET_FLAG(uart,	UART_FLAG_TC) == RESET);
 }
 
 /*
@@ -140,7 +142,6 @@ void UART8_DMA_IDLE_Start(void){
  */
 #if UART1_BUFF_EN == 1
 static void UART1_rxFunction(void){
-	HAL_UART_Transmit(&huart1, RxDMABuff1, rxLenth, 1000);
 
 	HAL_UART_Receive_DMA(&huart1, RxDMABuff1, UART_RX_BUF_SIZE);	//重启DMA接收
 }
@@ -267,7 +268,7 @@ void UART_IDLE_Callback(UART_HandleTypeDef *uart){
 		temp = uart->Instance->SR;					//读取SR寄存器即可清空SR寄存器的值
 		temp = uart->Instance->DR;					//读取DR寄存器的数据
 		HAL_UART_DMAStop(uart);						//暂时关闭DMA方便计数
-		temp = uart->hdmarx->Instance->CNDTR;		//获取DMA中未传输的数据个数
+		temp = uart->hdmarx->Instance->NDTR;		//获取DMA中未传输的数据个数
 		rxLenth = UART_RX_BUF_SIZE - temp;			//得到接收到数据的长度
 		UART_UserFunction(uart);					//判断是哪个串口接收的数据，并进入相应的用户函数
 		rxLenth = 0;
