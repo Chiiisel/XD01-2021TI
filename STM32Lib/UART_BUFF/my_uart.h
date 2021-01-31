@@ -21,7 +21,7 @@
 //定义BUFF大小
 #define UART_RX_BUF_SIZE	255
 
-//DMA_IDLE方式开始函数，放在主函数MX_USARTx_UART_Init()后即可
+//DMA_IDLE方式开始函数，放在主函数MX_USARTx_UART_Init()后
 void UART1_DMA_IDLE_Start(void);
 void UART2_DMA_IDLE_Start(void);
 void UART3_DMA_IDLE_Start(void);
