@@ -10,8 +10,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
 #include "main.h"
 #include "usart.h"
 #include "esp8266_at.h"

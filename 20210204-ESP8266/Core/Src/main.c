@@ -111,7 +111,7 @@ int main(void)
   UART3_DMA_IDLE_Start();
 
   ESP8266_Init();  //需要配置连接AP的ssid和password
-
+  ESP8266_UnvarnishSend();
   /* USER CODE END 2 */
 
   /* Infinite loop */
