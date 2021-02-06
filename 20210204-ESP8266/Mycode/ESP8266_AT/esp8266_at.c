@@ -12,8 +12,7 @@
  *						   						UsartType.RX_Size = rxLenth;
  *						 						UsartType.RX_flag =1;
  *						 						strcpy(UsartType.RX_pData,RxDMABuffx);
- *												UsartType.RX_pData[UsartType.RX_Size]='\0';
- *												UartSendString(&huart3, UsartType.RX_pData);
+ *
  *
  *		注	  意：使用了prinft，其中printf重定向到了esp8266的串口
  *
@@ -27,7 +26,7 @@
 /* Private define ------------------------------------------------------------*/
 
 /**
- * 函数功能: 重定向c库函数printf到EspUart串口
+ * 函数功能: 重定向c库函数printf到EspUart
  * 输入参数: 无
  * 返 回 值: 无
  * 说    明：无
@@ -64,8 +63,8 @@ bool ESP8266_Cmd ( char * cmd, char * reply1, char * reply2, uint32_t waittime )
 
 	HAL_Delay( waittime );
 
-//	UsartType.RX_pData[UsartType.RX_Size]='\0';
-//	UartSendString(&huart3,UsartType.RX_pData);	//打印esp8266返回的信息
+	UsartType.RX_pData[UsartType.RX_Size]='\0';
+	UartSendString(&huart3,UsartType.RX_pData);	//打印esp8266返回的信息
 
 	if ( ( reply1 != 0 ) && ( reply2 != 0 ) )
 		return ( ( bool ) strstr ( UsartType.RX_pData, reply1 ) || ( bool ) strstr ( UsartType.RX_pData, reply2 ) );
@@ -162,9 +161,9 @@ bool ESP8266_JoinAP ( char * pSSID, char * pPassWord )
 	char cCmd [120];
 	char count=0;
 	sprintf ( cCmd, "AT+CWJAP=\"%s\",\"%s\"", pSSID, pPassWord );
-	while(count<10)
+	while(count<5 )
 	{
-		if(ESP8266_Cmd(cCmd,"OK","WIFI CONNECTED",2000))return 1;
+		if(ESP8266_Cmd(cCmd,"OK",0,2000))return 1;
 		++count;
 	}
 	return 0;
@@ -490,21 +489,22 @@ char * ESP8266_ReceiveString ( FunctionalState enumEnUnvarnishTx )
 }
 
 
+
 /**
  * 函数功能: 对ESP8266模块初始化
  * 输入参数: 无
  * 返 回 值: 无
- * 说    明：默认为STA模式； 	需要配置连接配置连接AP的ssid和password ； 需要配置连接服务器的IP和端口号
+ * 说    明：默认为STA/AP模式单路连接； 	需要配置连接配置连接AP的ssid和password ； 需要配置连接服务器的IP和端口号
  */
 void ESP8266_Init(void)
 {
-	while(!ESP8266_AT_Test()){
+	if(!ESP8266_AT_Test())
 		UartSendString(&huart3, "test error\r\n");
-	}
-	UartSendString(&huart3, "test OK\r\n");
+	else
+		UartSendString(&huart3, "test OK\r\n");
 	HAL_Delay(500);
 
-	if(ESP8266_Net_Mode_Choose(STA)) //选择STA模式
+	if(ESP8266_Net_Mode_Choose(STA_AP)) //选择STA模式
 		UartSendString(&huart3, "STA mode OK\r\n");
 	HAL_Delay(100);
 	ESP8266_Cmd("AT+RST", "OK", NULL, 1000);
@@ -514,6 +514,11 @@ void ESP8266_Init(void)
 		UartSendString(&huart3, "wifi connect OK\r\n");
 	else
 		UartSendString(&huart3, "wifi connect error,please check ssid and password\r\n");
+
+	if (ESP8266_Cmd("AT+CIFSR", "OK", NULL, 500)) {
+		HAL_Delay(1000);
+		UartSendString(&huart3, "Local IP address\r\n");
+	}
 
 	HAL_Delay(1000);
 	ESP8266_Cmd("AT+CIPMUX=0", "OK", NULL, 500);

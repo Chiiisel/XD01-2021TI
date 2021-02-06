@@ -162,8 +162,7 @@ static void UART2_rxFunction(void){
 	UsartType.RX_Size = rxLenth;
 	UsartType.RX_flag =1;
 	strcpy(UsartType.RX_pData,RxDMABuff2);
-	UsartType.RX_pData[UsartType.RX_Size]='\0';
-	UartSendString(&huart3, UsartType.RX_pData);
+
 	/* USER CODE END 2 */
 	HAL_UART_Receive_DMA(&huart2, RxDMABuff2, UART_RX_BUF_SIZE);	//重启DMA接收
 }
@@ -173,7 +172,7 @@ static void UART2_rxFunction(void){
 static void UART3_rxFunction(void){
 
 	/* USER CODE BEGIN 3 */
-	//ESP8266_SendString(1, RxDMABuff3, 0, 0);    //透传模式通过串口3发送字符串
+//	ESP_UartSendCmd(RxDMABuff3);
 	UartSendString(&huart2, RxDMABuff3);
 	/* USER CODE END 3 */
 	HAL_UART_Receive_DMA(&huart3, RxDMABuff3, UART_RX_BUF_SIZE);	//重启DMA接收
@@ -305,18 +304,3 @@ void UART_IDLE_Callback(UART_HandleTypeDef *uart){
 	}
 }
 
-
-void printf3(char * fmt,...)
-{
-    char buffer[100];
-    uint16_t i=0;
-    va_list arg_ptr;
-    va_start(arg_ptr,fmt);
-    vsnprintf(buffer,100,fmt,arg_ptr);
-    while(i<99&&buffer[i])
-    {
-        HAL_UART_Transmit(&huart3,(uint8_t *)&buffer[i],1,0xFFFF);
-        i++;
-    }
-    va_end(arg_ptr);
-}
