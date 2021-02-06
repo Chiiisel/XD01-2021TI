@@ -9,42 +9,60 @@
  *   	使用方法：	需要配合my_uart.c使用，在.h中互相包含；
  *   				esp8266_at.h中选择esp对应的串口号；
  *   				在my_uart.c中对应串口的用户函数中写：
- *						   						UsartType.RX_Size = rxLenth;
- *						 						UsartType.RX_flag =1;
- *						 						strcpy(UsartType.RX_pData,RxDMABuffx);
- *												UsartType.RX_pData[UsartType.RX_Size]='\0';
- *												UartSendString(&huart3, UsartType.RX_pData);
+ *						   					ESP8266_DefineValue(RxDMABuffx);
+ *						   					如果需要使用其他串口发送指令
+ *						   					加入ESP_UartSendCmd(&huart3);
  *
- *		注	  意：使用了prinft，其中printf重定向到了esp8266的串口
- *
- *
+
  *
  */
 
 #include "esp8266_at.h"
 
 
-/* Private define ------------------------------------------------------------*/
-
-/**
- * 函数功能: 重定向c库函数printf到EspUart串口
- * 输入参数: 无
- * 返 回 值: 无
- * 说    明：无
- */
-#ifdef __GNUC__
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif
-
-PUTCHAR_PROTOTYPE
-{
-	HAL_UART_Transmit(&EspUart, (uint8_t *)&ch, 1, 0xFFFF);
-	return ch;
-}
+/* Private variables ---------------------------------------------------------*/
 
 ESP_RECEIVETYPE UsartType;
+uint8_t UartSendCmd_Flag=0;
+
+/**
+ * 函数功能: 串口接收值的字符串赋值操作
+ * 输入参数: rxLenth, 串口的接收缓冲区RxDMABuffx
+ * 返 回 值: 无
+ * 说    明：使用在my_uart.c的用户函数区
+ */
+
+void ESP8266_DefineValue(uint32_t rxLenth,char * RxDMABuffx)
+{
+	UsartType.RX_Size = rxLenth;
+	UsartType.RX_flag =1;
+	strcpy(UsartType.RX_pData,RxDMABuffx);
+	UsartType.RX_pData[UsartType.RX_Size]='\0';
+}
+
+
+/**
+ * 函数功能: 使用其他串口向esp8266发送AT指令
+ * 输入参数: 使用串口的串口号
+ * 返 回 值: 无
+ * 说    明：如果需要使用其他串口向esp8266发送指令，使用该函数，放在8266对应的串口用户函数中
+ * 			 并且在使用串口的用户函数中写入
+ * 										ESP8266_DefineValue(RxDMABuffx);
+ * 										UartSendString(&huartx, UsartType.RX_pData);
+ * 注	意：使用后将UartSendCmd_Flag	置1
+ *
+ */
+void ESP_UartSendCmd(UART_HandleTypeDef *huart)
+{
+	if(UartSendCmd_Flag)
+		{
+			UartSendString(&huart, UsartType.RX_pData);
+			UartSendCmd_Flag=0;
+		}
+	else
+		UartSendCmd_Flag=0;
+}
+
 
 /**
  * 函数功能: 对ESP8266模块发送AT指令
@@ -58,14 +76,14 @@ ESP_RECEIVETYPE UsartType;
 bool ESP8266_Cmd ( char * cmd, char * reply1, char * reply2, uint32_t waittime )
 {
 	UsartType.RX_Size = 0;               //从新开始接收新的数据包
-	printf("%s\r\n",cmd);				//打印指令
+										//打印指令
+	UartSendString(&EspUart, cmd);
+	UartSendString(&EspUart, "\r\n");
 	if ( ( reply1 == 0 ) && ( reply2 == 0 ) )                      //不需要接收数据
 		return true;
 
 	HAL_Delay( waittime );
-
-//	UsartType.RX_pData[UsartType.RX_Size]='\0';
-//	UartSendString(&huart3,UsartType.RX_pData);	//打印esp8266返回的信息
+	UartSendString(&huart3,UsartType.RX_pData);	//打印esp8266返回的信息
 
 	if ( ( reply1 != 0 ) && ( reply2 != 0 ) )
 		return ( ( bool ) strstr ( UsartType.RX_pData, reply1 ) || ( bool ) strstr ( UsartType.RX_pData, reply2 ) );
@@ -162,9 +180,9 @@ bool ESP8266_JoinAP ( char * pSSID, char * pPassWord )
 	char cCmd [120];
 	char count=0;
 	sprintf ( cCmd, "AT+CWJAP=\"%s\",\"%s\"", pSSID, pPassWord );
-	while(count<10)
+	while(count<5 )
 	{
-		if(ESP8266_Cmd(cCmd,"OK","WIFI CONNECTED",2000))return 1;
+		if(ESP8266_Cmd(cCmd,"OK",0,2000))return 1;
 		++count;
 	}
 	return 0;
@@ -416,7 +434,7 @@ bool ESP8266_UnvarnishSend ( void )
 void ESP8266_ExitUnvarnishSend ( void )
 {
 	HAL_Delay(1000);
-	printf("+++");
+	UartSendString(&EspUart, "+++");
 	HAL_Delay(500);
 
 }
@@ -439,8 +457,7 @@ bool ESP8266_SendString ( FunctionalState enumEnUnvarnishTx, char * pStr, uint32
 
 	if ( enumEnUnvarnishTx )
 	{
-		printf( "%s", pStr );
-
+		UartSendString(&EspUart, pStr);
 		bRet = true;
 
 	}
@@ -490,21 +507,21 @@ char * ESP8266_ReceiveString ( FunctionalState enumEnUnvarnishTx )
 }
 
 
+
 /**
  * 函数功能: 对ESP8266模块初始化
  * 输入参数: 无
  * 返 回 值: 无
- * 说    明：默认为STA模式； 	需要配置连接配置连接AP的ssid和password ； 需要配置连接服务器的IP和端口号
+ * 说    明：默认为STA/AP模式单路连接； 	需要配置连接配置连接AP的ssid和password ； 需要配置连接服务器的IP和端口号
  */
 void ESP8266_Init(void)
 {
-	while(!ESP8266_AT_Test()){
+	if(!ESP8266_AT_Test())
 		UartSendString(&huart3, "test error\r\n");
-	}
-	UartSendString(&huart3, "test OK\r\n");
-	HAL_Delay(500);
+	else
+		UartSendString(&huart3, "test OK\r\n");
 
-	if(ESP8266_Net_Mode_Choose(STA)) //选择STA模式
+	if(ESP8266_Net_Mode_Choose(STA_AP)) //选择STA模式
 		UartSendString(&huart3, "STA mode OK\r\n");
 	HAL_Delay(100);
 	ESP8266_Cmd("AT+RST", "OK", NULL, 1000);
@@ -515,7 +532,11 @@ void ESP8266_Init(void)
 	else
 		UartSendString(&huart3, "wifi connect error,please check ssid and password\r\n");
 
-	HAL_Delay(1000);
+	if (ESP8266_Cmd("AT+CIFSR", "OK", NULL, 500)) {
+		UartSendString(&huart3, "Local IP address\r\n");
+	}
+
+	HAL_Delay(100);
 	ESP8266_Cmd("AT+CIPMUX=0", "OK", NULL, 500);
 	if(ESP8266_Link_Server(enumTCP, "192.168.0.211", "10666", 5))
 		UartSendString(&huart3, "TCP connect OK\r\n");

@@ -3,6 +3,12 @@
  *
  *  Created on: 2021年2月4日
  *      Author: cHisel
+ *      PB11——Uart3Rx
+ *      PD8	——Uart3Tx
+ *      PD10——ESP_RST
+ *      PA3	——ESP_Rx
+ *      PA2	——ESP_Tx
+ *      3V供电，EN接3V
  */
 
 #ifndef __ESP8266_AT_H
@@ -30,6 +36,7 @@ uint8_t  RX_pData[RX_LEN]; //DMA receive buffer
 }ESP_RECEIVETYPE;			//接收数据的缓冲区定义
 
 extern ESP_RECEIVETYPE UsartType;
+extern uint8_t UartSendCmd_Flag;  //串口向esp8266发送指令的标志位
 
 typedef enum{
   STA,
@@ -82,4 +89,6 @@ uint8_t ESP8266_Inquire_ApIp ( char * pApIp, uint8_t ucArrayLength );
 void ESP8266_Rst(void);
 void ESP8266_ExitUnvarnishSend ( void );
 void ESP8266_Init(void);
+void ESP8266_DefineValue(uint32_t rxLenth,char * RxDMABuffx);
+void ESP_UartSendCmd(UART_HandleTypeDef *huart);
 #endif  /* __ESP8266_AT_H */

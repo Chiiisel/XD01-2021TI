@@ -61,6 +61,7 @@
 
 uint32_t rxLenth = 0;	//接收信息的长度
 
+
 /* Private function prototypes -----------------------------------------------*/
 
 
@@ -159,9 +160,14 @@ static void UART1_rxFunction(void){
 static void UART2_rxFunction(void){
 
 	/* USER CODE BEGIN 2 */
-	UsartType.RX_Size = rxLenth;
-	UsartType.RX_flag =1;
-	strcpy(UsartType.RX_pData,RxDMABuff2);
+	ESP8266_DefineValue(rxLenth,RxDMABuff2);
+//	ESP_UartSendCmd(&huart3);
+
+	if(UartSendCmd_Flag)											// 这里是ESP_UartSendCmd()中的内容，
+			{														//	直接调用该函数不起作用，以后修改封装
+				UartSendString(&huart3, UsartType.RX_pData);		//
+				UartSendCmd_Flag=0;									//
+			}														//
 
 	/* USER CODE END 2 */
 	HAL_UART_Receive_DMA(&huart2, RxDMABuff2, UART_RX_BUF_SIZE);	//重启DMA接收
@@ -172,8 +178,10 @@ static void UART2_rxFunction(void){
 static void UART3_rxFunction(void){
 
 	/* USER CODE BEGIN 3 */
-//	ESP_UartSendCmd(RxDMABuff3);
-	UartSendString(&huart2, RxDMABuff3);
+	ESP8266_DefineValue(rxLenth,RxDMABuff3);
+	UartSendString(&EspUart, UsartType.RX_pData);
+	UartSendCmd_Flag=1;
+
 	/* USER CODE END 3 */
 	HAL_UART_Receive_DMA(&huart3, RxDMABuff3, UART_RX_BUF_SIZE);	//重启DMA接收
 }
