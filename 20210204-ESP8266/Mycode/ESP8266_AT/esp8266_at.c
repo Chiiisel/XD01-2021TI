@@ -7,11 +7,12 @@
  *
  *		功	  能：	esp8266驱动的指令集，封装了ESP8266的基本AT指令
  *   	使用方法：	需要配合my_uart.c使用，在.h中互相包含；
- *   				esp8266_at.h中选择esp对应的串口号；
+ *   				esp8266_at.h中选择esp对应的串口号和PC对应的串口号；
+ *
  *   				在my_uart.c中对应串口的用户函数中写：
  *						   					ESP8266_DefineValue(RxDMABuffx);
  *						   					如果需要使用其他串口发送指令
- *						   					加入ESP_UartSendCmd(&huart3);
+ *						   					加入ESP_UartSendCmd(&PcUart);
  *
 
  *
@@ -56,7 +57,7 @@ void ESP_UartSendCmd(UART_HandleTypeDef *huart)
 {
 	if(UartSendCmd_Flag)
 		{
-			UartSendString(&huart, UsartType.RX_pData);
+			UartSendString(huart, UsartType.RX_pData);
 			UartSendCmd_Flag=0;
 		}
 	else
@@ -83,7 +84,7 @@ bool ESP8266_Cmd ( char * cmd, char * reply1, char * reply2, uint32_t waittime )
 		return true;
 
 	HAL_Delay( waittime );
-	UartSendString(&huart3,UsartType.RX_pData);	//打印esp8266返回的信息
+	UartSendString(&PcUart,UsartType.RX_pData);	//打印esp8266返回的信息
 
 	if ( ( reply1 != 0 ) && ( reply2 != 0 ) )
 		return ( ( bool ) strstr ( UsartType.RX_pData, reply1 ) || ( bool ) strstr ( UsartType.RX_pData, reply2 ) );
@@ -517,34 +518,34 @@ char * ESP8266_ReceiveString ( FunctionalState enumEnUnvarnishTx )
 void ESP8266_Init(void)
 {
 	if(!ESP8266_AT_Test())
-		UartSendString(&huart3, "test error\r\n");
+		UartSendString(&PcUart, "test error\r\n");
 	else
-		UartSendString(&huart3, "test OK\r\n");
+		UartSendString(&PcUart, "test OK\r\n");
 
 	if(ESP8266_Net_Mode_Choose(STA_AP)) //选择STA模式
-		UartSendString(&huart3, "STA mode OK\r\n");
+		UartSendString(&PcUart, "STA mode OK\r\n");
 	HAL_Delay(100);
 	ESP8266_Cmd("AT+RST", "OK", NULL, 1000);
 	HAL_Delay(1000);
 
 	if(ESP8266_JoinAP("Don't Use My Net", "D2313...")) //配置连接AP的ssid和password
-		UartSendString(&huart3, "wifi connect OK\r\n");
+		UartSendString(&PcUart, "wifi connect OK\r\n");
 	else
-		UartSendString(&huart3, "wifi connect error,please check ssid and password\r\n");
+		UartSendString(&PcUart, "wifi connect error,please check ssid and password\r\n");
 
 	if (ESP8266_Cmd("AT+CIFSR", "OK", NULL, 500)) {
-		UartSendString(&huart3, "Local IP address\r\n");
+		UartSendString(&PcUart, "Local IP address\r\n");
 	}
 
 	HAL_Delay(100);
 	ESP8266_Cmd("AT+CIPMUX=0", "OK", NULL, 500);
 	if(ESP8266_Link_Server(enumTCP, "192.168.0.211", "10666", 5))
-		UartSendString(&huart3, "TCP connect OK\r\n");
+		UartSendString(&PcUart, "TCP connect OK\r\n");
 	else
-		UartSendString(&huart3, "TCP connect error,please check out\r\n");
+		UartSendString(&PcUart, "TCP connect error,please check out\r\n");
 
 	HAL_Delay(100);
-	UartSendString(&huart3, "ESP8266 Already Init!\r\n");
+	UartSendString(&PcUart, "ESP8266 Already Init!\r\n");
 
 }
 

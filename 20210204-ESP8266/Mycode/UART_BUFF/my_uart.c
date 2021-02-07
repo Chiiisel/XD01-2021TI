@@ -161,13 +161,7 @@ static void UART2_rxFunction(void){
 
 	/* USER CODE BEGIN 2 */
 	ESP8266_DefineValue(rxLenth,RxDMABuff2);
-//	ESP_UartSendCmd(&huart3);
-
-	if(UartSendCmd_Flag)											// 这里是ESP_UartSendCmd()中的内容，
-			{														//	直接调用该函数不起作用，以后修改封装
-				UartSendString(&huart3, UsartType.RX_pData);		//
-				UartSendCmd_Flag=0;									//
-			}														//
+	ESP_UartSendCmd(&PcUart);
 
 	/* USER CODE END 2 */
 	HAL_UART_Receive_DMA(&huart2, RxDMABuff2, UART_RX_BUF_SIZE);	//重启DMA接收

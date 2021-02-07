@@ -27,6 +27,7 @@
 /******************************* ESP8266 数据类型定义 ***************************/
 
 #define EspUart huart2	//配置ESP对应的串口号
+#define PcUart huart3	//配置PC相连对应的串口号
 #define RX_LEN 1024  //接收的数据不能大于RX_LEN
 typedef struct
 {
