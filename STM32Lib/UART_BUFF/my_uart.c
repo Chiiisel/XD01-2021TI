@@ -9,7 +9,7 @@
  *   	使用方法：	CubeMX配置时保持串口DMA设置默认。
  *					在my_uart.h中使能需要使用的串口；
  *     				将回调函数UART_IDLE_Callback()添加在stm32fxxx_it.c的USARTx_IRQHandler()中；
- *     				在主函数while(1)之前调用UARTx_DMA_IDLE_Start()；
+ *     				在主函数while(1)之前调用UARTx_DMA_IDLE_Start();
  *					在对应的UARTx_rxFunction()中编写自己的用户函数。
  *
  */
@@ -17,9 +17,7 @@
 
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
 #include "my_uart.h"
-#include "usart.h"
 
 /* Private define ------------------------------------------------------------*/
 
@@ -70,11 +68,18 @@ uint32_t rxLenth = 0;	//接收信息的长度
 /*
  * Function		: UartSendString
  * Description	: 发送任意长度的字符串
+ * 				  使用方法同printf,多一个参数为串口号
  */
-void UartSendString(UART_HandleTypeDef *uart, uint8_t string[]){
-	uint16_t lenth = 0;
-	lenth = strlen(string);
-	HAL_UART_Transmit(uart, string, lenth, 1000);
+void UartSendString(UART_HandleTypeDef *uart, const char *format, ...){
+	va_list args;
+	uint32_t length;
+	uint8_t txbuf[100] = {0};
+
+	va_start(args, format);
+	length = vsnprintf((char *)txbuf, sizeof(txbuf), (char *)format, args);
+	va_end(args);
+	HAL_UART_Transmit(uart, (uint8_t *)txbuf, length, 1000);
+	memset(txbuf, 0, 100);
 
 	while(__HAL_UART_GET_FLAG(uart,	UART_FLAG_TC) == RESET);
 }

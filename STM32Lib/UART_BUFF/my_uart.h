@@ -8,6 +8,13 @@
 #ifndef INC_MY_UART_H_
 #define INC_MY_UART_H_
 
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "usart.h"
+#include <stdio.h>
+#include <stdarg.h>
+
+/* Private define ------------------------------------------------------------*/
 //选择使能串口BUFF
 #define	UART1_BUFF_EN	1
 #define	UART2_BUFF_EN	1
@@ -34,7 +41,7 @@ void UART8_DMA_IDLE_Start(void);
 //函数声明
 void UART_IDLE_Callback(UART_HandleTypeDef *uart);	//串口IDLE中断回调函数
 
-void UartSendString(UART_HandleTypeDef *uart, uint8_t string[]);	//发送任意长度字符串
+void UartSendString(UART_HandleTypeDef *uart, const char *format, ...);	//发送任意长度字符串
 
 #endif /* INC_MY_UART_H_ */
 
