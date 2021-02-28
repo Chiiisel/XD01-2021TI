@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+encoding//Core/Src/main.c=GBK
+encoding//Mycode/ESP8266_AT/esp8266_at.c=GBK
+encoding//Mycode/Include/esp8266_at.h=GBK
+encoding//Mycode/MQTT/transport.c=UTF-8
+encoding/<project>=GBK

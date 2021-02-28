@@ -16,11 +16,6 @@
 #include "transport.h"
 
 
-/***********************函数定义********************************/
-
-
-
-
 int transport_sendPacketBuffer(int sock, unsigned char* buf, int buflen)
 {
 	UsartType.RX_flag = 0;
@@ -32,14 +27,14 @@ int transport_sendPacketBuffer(int sock, unsigned char* buf, int buflen)
 
 int transport_getdata(unsigned char* buf, int count)
 {
-	while(1){
-		if (UsartType.RX_flag == 1) {
+	uint8_t numb=0;
+	while(numb<10000){
+		if (UsartType.RX_flag) {
 			memcpy(buf,UsartType.RX_pData, count);
 			memset(UsartType.RX_pData, 0, count);
 			break;
 		}
-		HAL_Delay(10);
-//		PC_printf("Waiting for backdata");
+		numb++;
 	}
 	return count;
 }
@@ -58,8 +53,7 @@ int transport_open(char* addr, char* port)
 int transport_close(int sock)
 {
 	ESP8266_ExitUnvarnishSend();
-	ESP8266_Cmd("AT+CIPSTATUS", "OK", NULL , 1000);
 	ESP8266_Cmd("AT+CIPCLOSE", "OK", "CLOSED", 1000);
-
+	IotConnect_Flag=0;
 	return 0;
 }
