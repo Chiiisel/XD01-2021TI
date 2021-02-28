@@ -97,7 +97,7 @@ uint8_t ESP8266_Get_IdLinkStatus ( void );
 uint8_t ESP8266_Inquire_ApIp ( char * pApIp, uint8_t ucArrayLength );
 void ESP8266_Rst(void);
 void ESP8266_ExitUnvarnishSend ( void );
-void ESP8266_Init(void);
+bool ESP8266_Init(void);
 void ESP8266_DefineValue(uint32_t rxLenth,char * RxDMABuffx);
 void ESP_UartSendCmd(UART_HandleTypeDef *huart);
 #endif  /* __ESP8266_AT_H */

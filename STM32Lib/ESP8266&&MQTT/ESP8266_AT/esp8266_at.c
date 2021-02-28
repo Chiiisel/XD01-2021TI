@@ -62,11 +62,13 @@ void ESP_UartSendCmd(UART_HandleTypeDef *huart)
 		HAL_UART_Transmit(huart, UsartType.RX_pData, UsartType.RX_Size, 1000);
 		UartSendCmd_Flag=0;
 	}
-	else if (UnvarnishSend_Flag) {
-		UartSendString(huart, "MessageFromTCP:");
-		HAL_UART_Transmit(huart, UsartType.RX_pData, UsartType.RX_Size, 1000);
-		HAL_UART_Transmit(huart, "\r\n", 4, 1000);
-	}
+
+	//注释内容用于显示esp透传模式下接受的数据显示
+//	else if (UnvarnishSend_Flag) {
+//		UartSendString(huart, "//MessageFromTCP:\"");
+//		HAL_UART_Transmit(huart, UsartType.RX_pData, UsartType.RX_Size, 1000);
+//		HAL_UART_Transmit(huart, "\"//\r\n", 4, 1000);
+//	}
 	else
 		UartSendCmd_Flag=0;
 }
@@ -190,7 +192,8 @@ bool ESP8266_JoinAP ( char * pSSID, char * pPassWord )
 	sprintf ( cCmd, "AT+CWJAP=\"%s\",\"%s\"", pSSID, pPassWord );
 	while(count<5 )
 	{
-		if(ESP8266_Cmd(cCmd,"OK","WIFI CONNECTED",2000))return 1;
+		if(ESP8266_Cmd(cCmd,"OK","WIFI GOT IP",2000))return 1;
+		HAL_Delay(500);
 		++count;
 	}
 	return 0;
@@ -275,7 +278,7 @@ bool ESP8266_Link_Server ( ENUM_NetPro_TypeDef enumE, char * ip, char * ComNum, 
 
 	while(count<5)
 	{
-		if(ESP8266_Cmd ( cCmd, "OK", "ALREADY CONNECT", 2000 ))return 1;
+		if(ESP8266_Cmd ( cCmd, "OK", NULL, 2000 ))return 1;
 		++count;
 	}
 	return 0;
@@ -429,8 +432,9 @@ bool ESP8266_UnvarnishSend ( void )
 	if ( ! ESP8266_Cmd ( "AT+CIPMODE=1", "OK", 0, 1000 ) )
 		return false;
 
+	ESP8266_Cmd ( "AT+CIPSEND", "OK", ">", 1000 );
 	UnvarnishSend_Flag = 1;
-	return  ESP8266_Cmd ( "AT+CIPSEND", "OK", ">", 1000 );
+	return  1;
 
 }
 
@@ -521,16 +525,17 @@ char * ESP8266_ReceiveString ( FunctionalState enumEnUnvarnishTx )
 /**
  * 函数功能: 对ESP8266模块初始化
  * 输入参数: 无
- * 返 回 值: 无
+ * 返 回 值: 0 失败
+ * 			1 成功
  * 说    明：默认为STA/AP模式单路连接； 	需要配置连接配置连接AP的ssid和password ； 需要配置连接服务器的IP和端口号
  */
-void ESP8266_Init(void)
+bool ESP8266_Init(void)
 {
 	UartSendString(&PcUart, "准备测试ESP模块\r\n");
 	if(!ESP8266_AT_Test())
 	{
 		UartSendString(&PcUart, "测试失败，等待重启或手动输入指令\r\n");
-		return ;
+		return 0;
 	}
 	else
 		UartSendString(&PcUart, "测试成功\r\n");
@@ -538,7 +543,7 @@ void ESP8266_Init(void)
 	if(!ESP8266_Net_Mode_Choose(STA)) //选择STA模式
 	{
 		UartSendString(&PcUart, "设置STA模式失败，等待重启或手动输入指令\r\n");
-		return ;
+		return 0;
 	}
 	else
 		UartSendString(&PcUart, "设置STA模式成功\r\n");
@@ -554,46 +559,50 @@ void ESP8266_Init(void)
 	else
 	{
 		UartSendString(&PcUart, "wifi 连接失败，等待重启或手动输入指令\r\n");
-		return ;
+		return 0;
 	}
 
+
 	UartSendString(&PcUart, "查询本地IP地址\r\n");
-	if (!ESP8266_Cmd("AT+CIFSR", "OK", NULL, 500))
+	HAL_Delay(100);
+	if (!ESP8266_Cmd("AT+CIFSR", "OK", NULL, 1000))
 		UartSendString(&PcUart, "查询失败\r\n");
 
 	HAL_Delay(100);
 	UartSendString(&PcUart, "准备设置单连接\r\n");
-
-	if(!ESP8266_Cmd("AT+CIPMUX=0", "OK", NULL, 500))
+	HAL_Delay(100);
+	if(!ESP8266_Cmd("AT+CIPMUX=0", "OK", NULL, 1000))
 	{
 		UartSendString(&PcUart, "设置单连接失败,等待重启或手动输入指令\r\n");
-		return ;
+		return 0;
 	}
 	else
 		UartSendString(&PcUart, "设置单连接成功\r\n");
 
 	UartSendString(&PcUart, "准备连接TCP服务器\r\n");
+	HAL_Delay(100);
 	if(ESP8266_Link_Server(enumTCP, IOT_DOMAIN_NAME, IOT_PORTNUM, 5))	//连接阿里云服务器
 //		if(ESP8266_Link_Server(enumTCP, LocalAddress, LocalPort, 5))	//连接本地TCP服务器
 		UartSendString(&PcUart, "TCP连接成功\r\n");
 	else
 	{
 		UartSendString(&PcUart, "TCP连接失败，等待重启或手动输入指令\r\n");
-		return ;
+		return 0;
 	}
 
 	UartSendString(&PcUart, "准备设置透传模式\r\n");
+	HAL_Delay(100);
 	if(ESP8266_UnvarnishSend ())
 		UartSendString(&PcUart, "透传模式设置成功\r\n");
 	else
 	{
 		UartSendString(&PcUart, "透传模式设置失败，等待重启或手动输入指令\r\n");
-		return ;
+		return 0;
 	}
 
 	HAL_Delay(100);
 	UartSendString(&PcUart, "ESP8266 初始化完成！\r\n");
-	return ;
+	return 1;
 
 }
 
