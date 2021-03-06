@@ -23,12 +23,12 @@
 
 /******************************* ESP8266 WIFI和服务器定义 ***************************/
 
-#define WifiName			"TP-LINK_"
-#define	 WifiPassword		"D2313..."
-#define LocalAddress		"192.168.0.211"
-#define LocalPort			"10666"
-#define Iot_Address			"127.0.0.1"
-#define Iot_Port			"1883"
+#define WifiName			"Samsung"
+#define	 WifiPassword		"chisel112"
+#define LocalAddress		"192.168.0.211"			//测试使用
+#define LocalPort			"10666"					//测试使用
+#define Iot_Address			"127.0.0.1"				//测试使用
+#define Iot_Port			"1883"					//测试使用
 
 #define IOT_DOMAIN_NAME "a1REnRPxsPv.iot-as-mqtt.cn-shanghai.aliyuncs.com"
 #define IOT_PORTNUM 	"1883"
